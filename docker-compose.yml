@@ -11,12 +11,13 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_DB_PASSWORD}
     volumes:
       - mongo-data:/data/db
+      - ./init-scripts:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
       interval: 10s
       timeout: 5s
       retries: 5
-    restart: unless-stopped  # Optional restart policy for MongoDB
+    restart: unless-stopped
 
   mongo-express:
     image: mongo-express:latest
@@ -33,6 +34,22 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  cron-job:
+    image: busybox
+    container_name: cron-job
+    volumes:
+      - ./scripts:/scripts
+    entrypoint: /bin/sh -c "while true; do /scripts/domain-check.sh; sleep 3600; done"
+    depends_on:
+      - mongodb
+        condition: service_healthy
+    restart: unless-stopped
 
 volumes:
   mongo-data:

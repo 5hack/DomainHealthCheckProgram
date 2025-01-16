@@ -1,21 +1,28 @@
-# Use a lightweight, current Node.js image
-FROM node:18-alpine
+FROM node:13-alpine
 
-# Set the working directory inside the container
+# Install dependencies
+RUN apk update && apk add --no-cache bash curl mongodb-client cron
+
+# Create a directory for the scripts
+RUN mkdir -p /home/app/scripts
+
+# Copy the app and the scripts into the container
+COPY ./app /home/app
+COPY ./scripts/domain_health_check.sh /home/app/scripts/domain_health_check.sh
+
+# Set working directory
 WORKDIR /home/app
 
-# Copy only package files for efficient caching of dependencies
-COPY ./app/package*.json ./
-RUN npm ci --only=production
+# Set environment variables
+ENV MONGO_URL="mongodb://admin:password@mongodb:27017"
+ENV DATABASE="domain_monitor"
+ENV COLLECTION="domains"
 
-# Copy the application code
-COPY ./app .
+# Give execution permission to the script
+RUN chmod +x /home/app/scripts/domain_health_check.sh
 
-# Use environment variables from a .env file (set at runtime)
-ENV NODE_ENV=production
+# Add cron job to run the script every day at midnight (adjust as needed)
+RUN echo "0 0 * * * /home/app/scripts/domain_health_check.sh" >> /etc/crontabs/root
 
-# Expose the application port (optional, for documentation purposes)
-EXPOSE 3000
-
-# Start the application
-CMD ["node", "server.js"]
+# Start cron and your application
+CMD crond && node server.js

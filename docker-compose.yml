@@ -16,6 +16,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: unless-stopped  # Optional restart policy for MongoDB
 
   mongo-express:
     image: mongo-express:latest

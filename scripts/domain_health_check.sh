@@ -5,7 +5,7 @@ MONGO_URL="mongodb://admin:password@mongodb:27017"
 DATABASE="domain_monitor"
 COLLECTION="domains"
 
-# Get the current calendar month
+# Get the current calendar month and date
 current_month=$(date -u "+%Y-%m")
 current_date=$(date -u "+%Y-%m-%d")
 

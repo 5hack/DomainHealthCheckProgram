@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
   mongodb:
     image: mongo:latest
@@ -48,7 +46,7 @@ services:
     entrypoint: /bin/sh -c "while true; do /scripts/domain-check.sh; sleep 3600; done"
     depends_on:
       - mongodb
-        condition: service_healthy
+#        condition: service_healthy
     restart: unless-stopped
 
 volumes:
